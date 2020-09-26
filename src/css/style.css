@@ -1,0 +1,93 @@
+.grid {
+  border-collapse: collapse;
+  margin: auto;
+  margin-top: 180px;
+}
+
+.node {
+  width: 25px;
+  height: 25px;
+  border: 1px solid rgb(168 177 195);
+  padding: 0px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.node-end {
+  background-image: url("../assets/earth.svg");
+}
+
+.node-start {
+  background-image: url("../assets/rocket.svg");
+}
+
+.node-wall {
+  animation-name: wallAnimation;
+  animation-duration: 0.3s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+@keyframes wallAnimation {
+  0% {
+    transform: scale(0.3);
+    background-image: url("../assets/rock.svg");
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: scale(1.2);
+    background-image: url("../assets/rock.svg");
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(1);
+    background-image: url("../assets/rock.svg");
+    opacity: 0.7;
+  }
+}
+
+.node-visited {
+  animation-name: visitedAnimation;
+  animation-duration: 1.5s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+.node-shortest-path {
+  animation-name: shortestPath;
+  animation-duration: 1.5s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+@keyframes shortestPath {
+  0% {
+    transform: scale(0.6);
+    background-color: rgb(255, 254, 106);
+  }
+
+  50% {
+    transform: scale(1.2);
+    background-color: rgb(255, 254, 106);
+  }
+
+  100% {
+    transform: scale(1);
+    background-color: rgb(255, 254, 106);
+  }
+}
