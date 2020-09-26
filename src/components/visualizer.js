@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import Node from "./node";
-import { Navbar, Nav, NavDropdown } from "react-bootstrap";
+import { Navbar, Nav, NavDropdown, Button } from "react-bootstrap";
 
 // Starting with a predefined start and end node
 const START_NODE_ROW = 5;
@@ -18,7 +18,14 @@ class Visualizer extends Component {
       startCol: START_NODE_COL,
       endRow: END_NODE_ROW,
       endCol: END_NODE_COL,
+      algorithm: "Dijkstra",
+      isRunning: false,
+      isClearingWalls: false,
+      isMovingStart: false,
+      isMovingEnd: false,
     };
+
+    this.clearBoard = this.clearBoard.bind(this);
   }
 
   componentDidMount() {
@@ -26,16 +33,76 @@ class Visualizer extends Component {
     this.setState({ grid });
   }
 
-  handleMouseDown(row, col) {
-    this.setState({ mouseDown: true });
+  handleMouseDown(e) {
+    const [row, col] = e.target.id.split("-").slice(1);
+    if (row == this.state.startRow && col == this.state.startCol) {
+      this.setState({
+        isMovingStart: true,
+      });
+    }
+
+    if (row == this.state.endRow && col == this.state.endCol) {
+      this.setState({
+        isMovingEnd: true,
+      });
+    }
+    this.setState({ mouseDown: true, isClearingWalls: false });
   }
 
   handleMouseUp() {
-    this.setState({ mouseDown: false });
+    this.setState({
+      mouseDown: false,
+      isClearingWalls: false,
+      isMovingStart: false,
+      isMovingEnd: false,
+    });
+
+    let startRow = this.state.startRow,
+      startCol = this.state.startCol,
+      endRow = this.state.endRow,
+      endCol = this.state.endCol;
+
+    const newGrid = this.state.grid.slice();
+    for (let ref in this.refs) {
+      const { row, col, isStart, isEnd } = this.refs[ref].state;
+      newGrid[row][col] = this.refs[ref].state;
+      startRow = isStart ? row : startRow;
+      startCol = isStart ? col : startCol;
+      endRow = isEnd ? row : endRow;
+      endCol = isEnd ? col : endCol;
+    }
+
+    this.setState({
+      grid: newGrid,
+      startRow,
+      startCol,
+      endRow,
+      endCol,
+    });
+  }
+
+  handleMouseLeave() {
+    if (this.state.mouseDown) {
+      this.handleMouseUp();
+    }
+  }
+
+  clearBoard() {
+    if (!this.state.isRunning) {
+      const { startRow, startCol, endRow, endCol } = this.state;
+      const newGrid = getInitialGrid(startRow, startCol, endRow, endCol);
+      this.setState({ isClearingWalls: true, grid: newGrid });
+    }
   }
 
   render() {
-    const { grid, mouseDown } = this.state;
+    const {
+      grid,
+      mouseDown,
+      isClearingWalls,
+      isMovingStart,
+      isMovingEnd,
+    } = this.state;
 
     return (
       <div
@@ -45,7 +112,11 @@ class Visualizer extends Component {
         }}
         onMouseDown={(e) => {
           e.preventDefault();
-          this.handleMouseDown();
+          this.handleMouseDown(e);
+        }}
+        onMouseLeave={(e) => {
+          e.preventDefault();
+          this.handleMouseLeave();
         }}
       >
         <Navbar bg="dark" variant="dark" expand="lg">
@@ -72,6 +143,15 @@ class Visualizer extends Component {
                 <NavDropdown.Item>Breadth-first search</NavDropdown.Item>
                 <NavDropdown.Item>A*</NavDropdown.Item>
               </NavDropdown>
+
+              <div className="navbar-buttons">
+                <Button variant="outline-success">
+                  Visualize {this.state.algorithm}
+                </Button>
+                <Button onClick={this.clearBoard} variant="outline-danger">
+                  Clear board
+                </Button>
+              </div>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
@@ -89,6 +169,8 @@ class Visualizer extends Component {
                       isStart,
                       isWall,
                       isVisited,
+                      distance,
+                      previousNode,
                     } = node;
                     return (
                       <Node
@@ -99,7 +181,13 @@ class Visualizer extends Component {
                         isStart={isStart}
                         isWall={isWall}
                         isVisited={isVisited}
-                        mouseDown={this.state.mouseDown}
+                        mouseDown={mouseDown}
+                        distance={distance}
+                        previousNode={previousNode}
+                        ref={row + ":" + col}
+                        isClearingWalls={isClearingWalls}
+                        isMovingStart={isMovingStart}
+                        isMovingEnd={isMovingEnd}
                       ></Node>
                     );
                   })}
@@ -114,14 +202,14 @@ class Visualizer extends Component {
 }
 
 // Creating an initial grid
-const getInitialGrid = () => {
+const getInitialGrid = (startRow, startCol, endRow, endCol) => {
   const grid = [];
 
   for (let row = 0; row < 25; row++) {
     const cur = [];
 
     for (let col = 0; col < 70; col++) {
-      cur.push(createNode(row, col));
+      cur.push(createNode(row, col, startRow, startCol, endRow, endCol));
     }
 
     grid.push(cur);
@@ -130,8 +218,8 @@ const getInitialGrid = () => {
 };
 
 // Creating each node
-const createNode = (row, col) => {
-  return {
+const createNode = (row, col, startRow, startCol, endRow, endCol) => {
+  let node = {
     row,
     col,
     isStart: row === START_NODE_ROW && col === START_NODE_COL,
@@ -140,7 +228,15 @@ const createNode = (row, col) => {
     isVisited: false,
     isWall: false,
     previousNode: null,
+    mouseDown: false,
   };
+
+  if (typeof startRow !== "undefined") {
+    node.isStart = row === startRow && col === startCol;
+    node.isEnd = row === endRow && col === endCol;
+  }
+
+  return node;
 };
 
 export default Visualizer;

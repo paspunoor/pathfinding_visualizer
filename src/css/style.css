@@ -1,3 +1,19 @@
+.navbar-brand {
+  color: #29e890;
+}
+
+.navbar-buttons {
+  margin-left: auto;
+  width: 400px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.btn {
+  background-color: white;
+}
+
 .grid {
   border-collapse: collapse;
   margin: auto;
@@ -14,12 +30,66 @@
   background-size: contain;
 }
 
-.node-end {
-  background-image: url("../assets/earth.svg");
+.node-start {
+  animation-name: startAnimation;
+  animation-duration: 0.3s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
 }
 
-.node-start {
-  background-image: url("../assets/rocket.svg");
+@keyframes startAnimation {
+  0% {
+    transform: scale(0.3);
+    background-image: url("../assets/rocket.svg");
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: scale(1.2);
+    background-image: url("../assets/rocket.svg");
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(1);
+    background-image: url("../assets/rocket.svg");
+    opacity: 0.7;
+  }
+}
+
+.node-end {
+  animation-name: endAnimation;
+  animation-duration: 0.3s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+@keyframes endAnimation {
+  0% {
+    transform: scale(0.3);
+    background-image: url("../assets/earth.svg");
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: scale(1.2);
+    background-image: url("../assets/earth.svg");
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(1);
+    background-image: url("../assets/earth.svg");
+    opacity: 0.7;
+  }
 }
 
 .node-wall {
