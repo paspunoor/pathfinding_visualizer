@@ -2,14 +2,12 @@ import React, { Component } from "react";
 import Node from "./node";
 import { Navbar, Nav, NavDropdown, Button } from "react-bootstrap";
 import dijkstra from "../algorithms/dijkstra";
+import astar from "../algorithms/astar";
+import dfs from "../algorithms/dfs";
+import bfs from "../algorithms/bfs";
 import pathImg from "../assets/path.svg";
 
 // Starting with a predefined start and end node
-
-const START_NODE_ROW = 5;
-const START_NODE_COL = 15;
-const END_NODE_ROW = 10;
-const END_NODE_COL = 30;
 
 class Visualizer extends Component {
   constructor() {
@@ -17,11 +15,11 @@ class Visualizer extends Component {
     this.state = {
       grid: [],
       mouseDown: false,
-      startRow: START_NODE_ROW,
-      startCol: START_NODE_COL,
-      endRow: END_NODE_ROW,
-      endCol: END_NODE_COL,
-      algorithm: "Dijkstra",
+      startRow: 5,
+      startCol: 15,
+      endRow: 15,
+      endCol: 30,
+      algorithm: "1",
       isRunning: false,
       isClearingWalls: false,
       isMovingStart: false,
@@ -33,15 +31,24 @@ class Visualizer extends Component {
     this.getShortestPath = this.getShortestPath.bind(this);
     this.toggleIsRunning = this.toggleIsRunning.bind(this);
     this.clearGrid = this.clearGrid.bind(this);
+    this.handleSelect = this.handleSelect.bind(this);
+    this.getInitialGrid = this.getInitialGrid.bind(this);
+    this.createNode = this.createNode.bind(this);
   }
 
   componentDidMount() {
-    const grid = getInitialGrid();
+    const grid = this.getInitialGrid();
     this.setState({ grid });
   }
 
   toggleIsRunning() {
     this.setState({ isRunning: !this.state.isRunning });
+  }
+
+  handleSelect(eventKey) {
+    this.setState({
+      algorithm: eventKey,
+    });
   }
 
   handleMouseDown(e) {
@@ -103,11 +110,51 @@ class Visualizer extends Component {
     }
   }
 
+  // Creating an initial grid
+  getInitialGrid() {
+    const grid = [];
+
+    for (let row = 0; row < 20; row++) {
+      const cur = [];
+
+      for (let col = 0; col < 50; col++) {
+        cur.push(this.createNode(row, col));
+      }
+
+      grid.push(cur);
+    }
+    return grid;
+  }
+
+  // Creating each node
+  createNode(row, col) {
+    const { startRow, startCol, endRow, endCol } = this.state;
+    let node = {
+      row,
+      col,
+      isStart: row === startRow && col === startCol,
+      isEnd: row === endRow && col === endCol,
+      distance: Infinity,
+      isVisited: false,
+      isWall: false,
+      previousNode: null,
+      mouseDown: false,
+      distanceToFinishNode: (endRow - row) ** 2 + (endCol - col) ** 2,
+    };
+
+    if (typeof startRow !== "undefined") {
+      node.isStart = row === startRow && col === startCol;
+      node.isEnd = row === endRow && col === endCol;
+    }
+
+    return node;
+  }
+
   clearBoard() {
     if (this.state.isRunning) return;
     this.clearGrid();
     const { startRow, startCol, endRow, endCol, isRunning } = this.state;
-    const newGrid = getInitialGrid(startRow, startCol, endRow, endCol);
+    const newGrid = this.getInitialGrid();
     this.setState({ isClearingWalls: true, grid: newGrid });
   }
 
@@ -121,8 +168,17 @@ class Visualizer extends Component {
     let visitedNodes;
 
     switch (algorithm) {
-      case "Dijkstra":
+      case "1":
         visitedNodes = dijkstra(startNode, endNode, grid);
+        break;
+      case "2":
+        visitedNodes = astar(startNode, endNode, grid);
+        break;
+      case "3":
+        visitedNodes = dfs(startNode, endNode, grid);
+        break;
+      case "4":
+        visitedNodes = bfs(startNode, endNode, grid);
         break;
       default:
     }
@@ -171,7 +227,7 @@ class Visualizer extends Component {
       if (shortestPath[i] === "end") {
         setTimeout(() => {
           this.toggleIsRunning();
-        }, i * 25);
+        }, i * 40);
       } else {
         setTimeout(() => {
           const node = shortestPath[i];
@@ -185,13 +241,14 @@ class Visualizer extends Component {
             document.getElementById(`node-${node.row}-${node.col}`).className =
               "node node-shortest-path";
           }
-        }, i * 20);
+        }, i * 30);
       }
     }
   }
 
   clearGrid() {
     if (!this.state.isRunning) {
+      const { startRow, startCol, endRow, endCol } = this.state;
       const newGrid = this.state.grid.slice();
       for (const row of newGrid) {
         for (const node of row) {
@@ -208,8 +265,8 @@ class Visualizer extends Component {
             node.isVisited = false;
             node.distance = Infinity;
             node.distanceToFinishNode =
-              Math.abs(this.state.FINISH_NODE_ROW - node.row) +
-              Math.abs(this.state.FINISH_NODE_COL - node.col);
+              (this.state.endRow - node.row) ** 2 +
+              (this.state.endCol - node.col) ** 2;
           }
           if (nodeClassName === "node node-end") {
             node.isVisited = false;
@@ -222,8 +279,8 @@ class Visualizer extends Component {
             node.isVisited = false;
             node.distance = Infinity;
             node.distanceToFinishNode =
-              Math.abs(this.state.FINISH_NODE_ROW - node.row) +
-              Math.abs(this.state.FINISH_NODE_COL - node.col);
+              (this.state.endRow - node.row) ** 2 +
+              (this.state.endCol - node.col) ** 2;
             node.isStart = true;
             node.isWall = false;
             node.previousNode = null;
@@ -242,7 +299,17 @@ class Visualizer extends Component {
       isMovingStart,
       isMovingEnd,
       isRunning,
+      algorithm,
     } = this.state;
+
+    const algoKeys = {
+      "1": "Dijkstra's",
+      "2": "A-star",
+      "3": "Depth-first search",
+      "4": "Breadth-first search",
+    };
+
+    const algo = algoKeys[algorithm];
 
     return (
       <div
@@ -268,7 +335,7 @@ class Visualizer extends Component {
               height="30"
               className="d-inline-block align-top"
             />{" "}
-            Pathfinding visualizer
+            Pathfinding algorithm visualizer
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
@@ -277,29 +344,33 @@ class Visualizer extends Component {
                 variant="Info"
                 title="Algorithm"
                 id="basic-nav-dropdown"
+                onSelect={(eventKey) => {
+                  this.handleSelect(eventKey);
+                }}
               >
-                <NavDropdown.Item>Dijkstra's</NavDropdown.Item>
-                <NavDropdown.Item>Depth-first search</NavDropdown.Item>
-                <NavDropdown.Item>Breadth-first search</NavDropdown.Item>
-                <NavDropdown.Item>A*</NavDropdown.Item>
+                <NavDropdown.Item eventKey="1">Dijkstra's</NavDropdown.Item>
+                <NavDropdown.Item eventKey="2">A*</NavDropdown.Item>
+                <NavDropdown.Item eventKey="3">
+                  Depth-first search
+                </NavDropdown.Item>
+                <NavDropdown.Item eventKey="4">
+                  Breadth-first search
+                </NavDropdown.Item>
               </NavDropdown>
 
-              <div className="navbar-buttons">
-                <Button variant="success" onClick={this.runPathfinder}>
-                  Visualize {this.state.algorithm}
-                </Button>
-                <Button onClick={this.clearBoard} variant="outline-danger">
-                  Clear walls and board
-                </Button>
+              <Button variant="info" onClick={this.runPathfinder}>
+                Run -> {algo}
+              </Button>
+              <Button onClick={this.clearBoard} variant="outline-danger">
+                Clear walls and board
+              </Button>
 
-                <Button onClick={this.clearGrid} variant="outline-warning">
-                  Clear board
-                </Button>
-              </div>
+              <Button onClick={this.clearGrid} variant="outline-warning">
+                Clear board
+              </Button>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
-
         <table className="grid">
           <tbody>
             {grid.map((row, rowIdx) => {
@@ -345,43 +416,5 @@ class Visualizer extends Component {
     );
   }
 }
-
-// Creating an initial grid
-const getInitialGrid = (startRow, startCol, endRow, endCol) => {
-  const grid = [];
-
-  for (let row = 0; row < 25; row++) {
-    const cur = [];
-
-    for (let col = 0; col < 70; col++) {
-      cur.push(createNode(row, col, startRow, startCol, endRow, endCol));
-    }
-
-    grid.push(cur);
-  }
-  return grid;
-};
-
-// Creating each node
-const createNode = (row, col, startRow, startCol, endRow, endCol) => {
-  let node = {
-    row,
-    col,
-    isStart: row === START_NODE_ROW && col === START_NODE_COL,
-    isEnd: row === END_NODE_ROW && col === END_NODE_COL,
-    distance: Infinity,
-    isVisited: false,
-    isWall: false,
-    previousNode: null,
-    mouseDown: false,
-  };
-
-  if (typeof startRow !== "undefined") {
-    node.isStart = row === startRow && col === startCol;
-    node.isEnd = row === endRow && col === endCol;
-  }
-
-  return node;
-};
 
 export default Visualizer;

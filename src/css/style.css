@@ -1,24 +1,25 @@
 .navbar-brand {
-  color: #29e890;
+  color: #29e890 !important;
 }
 
-.navbar-buttons {
-  margin-left: auto;
-  width: 37.5rem;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
+.btn {
+  margin-right: 20px;
+  margin-left: 20px;
+}
+
+.btn-info {
+  font-weight: 500 !important;
 }
 
 .grid {
   border-collapse: collapse;
   margin: auto;
-  margin-top: 11.25rem;
+  margin-top: 150px;
 }
 
 .node {
-  width: 1.5625rem;
-  height: 1.5625rem;
+  width: 35px;
+  height: 35px;
   border: 1px solid rgb(168 177 195);
   padding: 0px;
   background-position: center;
