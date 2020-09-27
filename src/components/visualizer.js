@@ -1,12 +1,14 @@
 import React, { Component } from "react";
 import Node from "./node";
 import { Navbar, Nav, NavDropdown, Button } from "react-bootstrap";
+import dijkstra from "../algorithms/dijkstra";
 
 // Starting with a predefined start and end node
+
 const START_NODE_ROW = 5;
 const START_NODE_COL = 15;
-const END_NODE_ROW = 20;
-const END_NODE_COL = 50;
+const END_NODE_ROW = 10;
+const END_NODE_COL = 30;
 
 class Visualizer extends Component {
   constructor() {
@@ -26,6 +28,10 @@ class Visualizer extends Component {
     };
 
     this.clearBoard = this.clearBoard.bind(this);
+    this.runPathfinder = this.runPathfinder.bind(this);
+    this.getShortestPath = this.getShortestPath.bind(this);
+    this.toggleIsRunning = this.toggleIsRunning.bind(this);
+    this.clearGrid = this.clearGrid.bind(this);
   }
 
   componentDidMount() {
@@ -33,7 +39,13 @@ class Visualizer extends Component {
     this.setState({ grid });
   }
 
+  toggleIsRunning() {
+    this.setState({ isRunning: !this.state.isRunning });
+  }
+
   handleMouseDown(e) {
+    if (this.state.isRunning) return;
+    this.clearGrid();
     const [row, col] = e.target.id.split("-").slice(1);
     if (row == this.state.startRow && col == this.state.startCol) {
       this.setState({
@@ -50,6 +62,8 @@ class Visualizer extends Component {
   }
 
   handleMouseUp() {
+    if (this.state.isRunning) return;
+    this.clearGrid();
     this.setState({
       mouseDown: false,
       isClearingWalls: false,
@@ -82,16 +96,138 @@ class Visualizer extends Component {
   }
 
   handleMouseLeave() {
+    if (this.state.isRunning) return;
     if (this.state.mouseDown) {
       this.handleMouseUp();
     }
   }
 
   clearBoard() {
+    if (this.state.isRunning) return;
+    this.clearGrid();
+    const { startRow, startCol, endRow, endCol, isRunning } = this.state;
+    const newGrid = getInitialGrid(startRow, startCol, endRow, endCol);
+    this.setState({ isClearingWalls: true, grid: newGrid });
+  }
+
+  runPathfinder() {
+    if (this.state.isRunning) return;
+    this.clearGrid();
+    this.toggleIsRunning();
+    const { algorithm, startRow, startCol, endRow, endCol, grid } = this.state;
+    const startNode = grid[startRow][startCol],
+      endNode = grid[endRow][endCol];
+    let visitedNodes;
+
+    switch (algorithm) {
+      case "Dijkstra":
+        visitedNodes = dijkstra(startNode, endNode, grid);
+        break;
+      default:
+    }
+
+    const shortestPath = this.getShortestPath(endNode);
+    shortestPath.push("end");
+    this.animate(visitedNodes, shortestPath);
+  }
+
+  getShortestPath(endNode) {
+    const shortestPath = [];
+    let cur = endNode;
+    while (cur !== null) {
+      shortestPath.unshift(cur);
+      cur = cur.previousNode;
+    }
+    return shortestPath;
+  }
+
+  animate(visitedNodes, shortestPath) {
+    for (let i = 0; i <= visitedNodes.length; i++) {
+      if (i === visitedNodes.length) {
+        setTimeout(() => {
+          this.animateShortestPath(shortestPath);
+        }, 5 * i);
+        return;
+      }
+      setTimeout(() => {
+        const node = visitedNodes[i];
+        const nodeClassName = document.getElementById(
+          `node-${node.row}-${node.col}`
+        ).className;
+        if (
+          nodeClassName !== "node node-start" &&
+          nodeClassName !== "node node-end"
+        ) {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            "node node-visited";
+        }
+      }, 5 * i);
+    }
+  }
+
+  animateShortestPath(shortestPath) {
+    for (let i = 0; i < shortestPath.length; i++) {
+      if (shortestPath[i] === "end") {
+        setTimeout(() => {
+          this.toggleIsRunning();
+        }, i * 25);
+      } else {
+        setTimeout(() => {
+          const node = shortestPath[i];
+          const nodeClassName = document.getElementById(
+            `node-${node.row}-${node.col}`
+          ).className;
+          if (
+            nodeClassName !== "node node-start" &&
+            nodeClassName !== "node node-end"
+          ) {
+            document.getElementById(`node-${node.row}-${node.col}`).className =
+              "node node-shortest-path";
+          }
+        }, i * 20);
+      }
+    }
+  }
+
+  clearGrid() {
     if (!this.state.isRunning) {
-      const { startRow, startCol, endRow, endCol } = this.state;
-      const newGrid = getInitialGrid(startRow, startCol, endRow, endCol);
-      this.setState({ isClearingWalls: true, grid: newGrid });
+      const newGrid = this.state.grid.slice();
+      for (const row of newGrid) {
+        for (const node of row) {
+          let nodeClassName = document.getElementById(
+            `node-${node.row}-${node.col}`
+          ).className;
+          if (
+            nodeClassName !== "node node-start" &&
+            nodeClassName !== "node node-end" &&
+            nodeClassName !== "node node-wall"
+          ) {
+            document.getElementById(`node-${node.row}-${node.col}`).className =
+              "node";
+            node.isVisited = false;
+            node.distance = Infinity;
+            node.distanceToFinishNode =
+              Math.abs(this.state.FINISH_NODE_ROW - node.row) +
+              Math.abs(this.state.FINISH_NODE_COL - node.col);
+          }
+          if (nodeClassName === "node node-end") {
+            node.isVisited = false;
+            node.distance = Infinity;
+            node.distanceToFinishNode = 0;
+          }
+          if (nodeClassName === "node node-start") {
+            node.isVisited = false;
+            node.distance = Infinity;
+            node.distanceToFinishNode =
+              Math.abs(this.state.FINISH_NODE_ROW - node.row) +
+              Math.abs(this.state.FINISH_NODE_COL - node.col);
+            node.isStart = true;
+            node.isWall = false;
+            node.previousNode = null;
+            node.isNode = true;
+          }
+        }
+      }
     }
   }
 
@@ -102,6 +238,7 @@ class Visualizer extends Component {
       isClearingWalls,
       isMovingStart,
       isMovingEnd,
+      isRunning,
     } = this.state;
 
     return (
@@ -145,10 +282,14 @@ class Visualizer extends Component {
               </NavDropdown>
 
               <div className="navbar-buttons">
-                <Button variant="outline-success">
+                <Button variant="outline-success" onClick={this.runPathfinder}>
                   Visualize {this.state.algorithm}
                 </Button>
                 <Button onClick={this.clearBoard} variant="outline-danger">
+                  Clear walls and board
+                </Button>
+
+                <Button onClick={this.clearGrid} variant="outline-warning">
                   Clear board
                 </Button>
               </div>
@@ -188,6 +329,7 @@ class Visualizer extends Component {
                         isClearingWalls={isClearingWalls}
                         isMovingStart={isMovingStart}
                         isMovingEnd={isMovingEnd}
+                        isRunning={isRunning}
                       ></Node>
                     );
                   })}

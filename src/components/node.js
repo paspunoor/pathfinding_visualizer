@@ -18,6 +18,7 @@ class Node extends Component {
   }
 
   handleMouseDown() {
+    if (this.props.isRunning) return;
     if (!(this.state.isEnd || this.state.isStart)) {
       this.setState({
         isWall: !this.state.isWall,
@@ -26,6 +27,7 @@ class Node extends Component {
   }
 
   handleMouseEnter() {
+    if (this.props.isRunning) return;
     if (this.props.mouseDown) {
       if (this.props.isMovingStart && !this.state.isEnd) {
         this.setState({
@@ -44,6 +46,7 @@ class Node extends Component {
   }
 
   handleMouseLeave() {
+    if (this.props.isRunning) return;
     if (this.props.isMovingStart) {
       this.setState({
         isStart: false,
@@ -58,7 +61,7 @@ class Node extends Component {
   }
 
   render() {
-    const { row, col, isEnd, isStart, isWall, isVisited } = this.state;
+    const { row, col, isEnd, isStart, isWall } = this.state;
 
     const customClass = isEnd
       ? "node-end"
@@ -66,8 +69,6 @@ class Node extends Component {
       ? "node-start"
       : isWall
       ? "node-wall"
-      : isVisited
-      ? "node-visited"
       : "";
 
     return (
