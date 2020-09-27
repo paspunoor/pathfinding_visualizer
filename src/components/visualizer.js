@@ -215,6 +215,8 @@ class Visualizer extends Component {
             node.isVisited = false;
             node.distance = Infinity;
             node.distanceToFinishNode = 0;
+            node.previousNode = null;
+            node.distance = Infinity;
           }
           if (nodeClassName === "node node-start") {
             node.isVisited = false;
