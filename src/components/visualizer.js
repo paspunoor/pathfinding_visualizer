@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Node from "./node";
 import { Navbar, Nav, NavDropdown, Button } from "react-bootstrap";
 import dijkstra from "../algorithms/dijkstra";
+import pathImg from "../assets/path.svg";
 
 // Starting with a predefined start and end node
 
@@ -260,7 +261,7 @@ class Visualizer extends Component {
           <Navbar.Brand>
             <img
               alt=""
-              src="/path.svg"
+              src={pathImg}
               width="30"
               height="30"
               className="d-inline-block align-top"
@@ -282,7 +283,7 @@ class Visualizer extends Component {
               </NavDropdown>
 
               <div className="navbar-buttons">
-                <Button variant="outline-success" onClick={this.runPathfinder}>
+                <Button variant="success" onClick={this.runPathfinder}>
                   Visualize {this.state.algorithm}
                 </Button>
                 <Button onClick={this.clearBoard} variant="outline-danger">

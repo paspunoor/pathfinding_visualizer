@@ -4,25 +4,21 @@
 
 .navbar-buttons {
   margin-left: auto;
-  width: 600px;
+  width: 37.5rem;
   display: flex;
   flex-direction: row;
   justify-content: space-around;
 }
 
-.btn {
-  background-color: white;
-}
-
 .grid {
   border-collapse: collapse;
   margin: auto;
-  margin-top: 180px;
+  margin-top: 11.25rem;
 }
 
 .node {
-  width: 25px;
-  height: 25px;
+  width: 1.5625rem;
+  height: 1.5625rem;
   border: 1px solid rgb(168 177 195);
   padding: 0px;
   background-position: center;
