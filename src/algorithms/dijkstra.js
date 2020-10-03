@@ -1,26 +1,53 @@
+import TinyQueue from "tinyqueue";
+
 export default function dijkstra(startNode, finishNode, grid) {
-  const visitedNodesInOrder = [];
+  // Set the start node distance to 0
   startNode.distance = 0;
-  const unvisitedNodes = getAllNodes(grid);
 
-  while (unvisitedNodes.length) {
+  // Insert all nodes in a min-heap
+  const nodes = getAllNodes(grid);
+  let pq = new TinyQueue(nodes, function (a, b) {
+    return a.distance - b.distance;
+  });
+
+  // Visited nodes
+  let visitedNodes = [];
+
+  while (pq.length) {
     // get the closest nodes
-    sortNodesByDistance(unvisitedNodes);
-    const closestNode = unvisitedNodes.shift();
+    let cur = pq.pop();
 
-    // Skip the wall nodes
-    if (closestNode.isWall) continue;
+    // Don't traverse a wall
+    if (cur.isWall) continue;
 
-    // Return the visited nodes if we are trapped by wall
-    if (closestNode.distance === Infinity) return visitedNodesInOrder;
+    // No path exists
+    if (cur.distance === Infinity) return visitedNodes;
 
-    closestNode.isVisited = true;
-    visitedNodesInOrder.push(closestNode);
+    // Push the nodes in the visited set
+    cur.isVisited = true;
+    visitedNodes.push(cur);
 
-    // Return the visited nodes if we find the target node
-    if (closestNode === finishNode) return visitedNodesInOrder;
-    updateUnvisitedNeighbors(closestNode, grid);
+    const adjacentNodes = getUnvisitedNeighbors(cur, grid);
+
+    for (const node of adjacentNodes) {
+      // Relaxing the edges
+      if (node.distance > cur.distance + 1) {
+        node.distance = cur.distance + 1;
+        node.previousNode = cur;
+
+        // Heapify
+        pq = new TinyQueue(pq.data, function (a, b) {
+          return a.distance - b.distance;
+        });
+
+        if (node.isEnd) {
+          return visitedNodes;
+        }
+      }
+    }
   }
+
+  return visitedNodes;
 }
 
 function getAllNodes(grid) {
@@ -33,24 +60,32 @@ function getAllNodes(grid) {
   return nodes;
 }
 
-function sortNodesByDistance(unvisitedNodes) {
-  unvisitedNodes.sort((nodeA, nodeB) => nodeA.distance - nodeB.distance);
-}
-
-function updateUnvisitedNeighbors(node, grid) {
-  const unvisitedNeighbors = getUnvisitedNeighbors(node, grid);
-  for (const neighbor of unvisitedNeighbors) {
-    neighbor.distance = node.distance + 1;
-    neighbor.previousNode = node;
-  }
-}
-
+// Gets all the adjacent nodes
 function getUnvisitedNeighbors(node, grid) {
-  const neighbors = [];
-  const { col, row } = node;
-  if (row > 0) neighbors.push(grid[row - 1][col]);
-  if (row < grid.length - 1) neighbors.push(grid[row + 1][col]);
-  if (col > 0) neighbors.push(grid[row][col - 1]);
-  if (col < grid[0].length - 1) neighbors.push(grid[row][col + 1]);
-  return neighbors.filter((neighbor) => !neighbor.isVisited);
+  let neighbors = [];
+
+  const directions = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ];
+
+  const { row, col } = node;
+
+  for (const dir of directions) {
+    const newRow = row + dir[0];
+    const newCol = col + dir[1];
+    if (
+      0 <= newRow &&
+      newRow < grid.length &&
+      0 <= newCol &&
+      newCol < grid[0].length &&
+      !grid[newRow][newCol].isVisited
+    ) {
+      neighbors.push(grid[newRow][newCol]);
+    }
+  }
+
+  return neighbors;
 }

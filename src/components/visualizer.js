@@ -15,9 +15,9 @@ class Visualizer extends Component {
     this.state = {
       grid: [],
       mouseDown: false,
-      startRow: 5,
+      startRow: 7,
       startCol: 15,
-      endRow: 15,
+      endRow: 10,
       endCol: 30,
       algorithm: "1",
       isRunning: false,

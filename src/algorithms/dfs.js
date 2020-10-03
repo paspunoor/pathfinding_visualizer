@@ -1,51 +1,53 @@
 export default function dfs(startNode, finishNode, grid) {
-  const visitedNodesInOrder = [];
-  const nextNodesStack = [];
-  nextNodesStack.push(startNode);
-  while (nextNodesStack.length) {
-    const currentNode = nextNodesStack.pop();
+  const visitedNodes = [];
+  const stack = [];
+  stack.push(startNode);
+  while (stack.length) {
+    const cur = stack.pop();
 
-    if (currentNode === finishNode) {
-      return visitedNodesInOrder;
-    }
+    if (cur.isEnd) return visitedNodes;
+    if (!cur.isWall && (cur.isStart || !cur.isVisited)) {
+      cur.isVisited = true;
+      visitedNodes.push(cur);
 
-    if (
-      !currentNode.isWall &&
-      (currentNode.isStart || !currentNode.isVisited)
-    ) {
-      currentNode.isVisited = true;
-      visitedNodesInOrder.push(currentNode);
+      const adjacentNodes = getUnvisitedNeighbors(cur, grid);
 
-      const { col, row } = currentNode;
-      let nextNode;
-      if (row > 0) {
-        nextNode = grid[row - 1][col];
-        if (!nextNode.isVisited) {
-          nextNode.previousNode = currentNode;
-          nextNodesStack.push(nextNode);
-        }
-      }
-      if (row < grid.length - 1) {
-        nextNode = grid[row + 1][col];
-        if (!nextNode.isVisited) {
-          nextNode.previousNode = currentNode;
-          nextNodesStack.push(nextNode);
-        }
-      }
-      if (col > 0) {
-        nextNode = grid[row][col - 1];
-        if (!nextNode.isVisited) {
-          nextNode.previousNode = currentNode;
-          nextNodesStack.push(nextNode);
-        }
-      }
-      if (col < grid[0].length - 1) {
-        nextNode = grid[row][col + 1];
-        if (!nextNode.isVisited) {
-          nextNode.previousNode = currentNode;
-          nextNodesStack.push(nextNode);
-        }
+      for (const node of adjacentNodes) {
+        node.previousNode = cur;
+        stack.push(node);
       }
     }
   }
+
+  return visitedNodes;
+}
+
+// Gets all the adjacent nodes
+function getUnvisitedNeighbors(node, grid) {
+  let neighbors = [];
+
+  const directions = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ];
+
+  const { row, col } = node;
+
+  for (const dir of directions) {
+    const newRow = row + dir[0];
+    const newCol = col + dir[1];
+    if (
+      0 <= newRow &&
+      newRow < grid.length &&
+      0 <= newCol &&
+      newCol < grid[0].length &&
+      !grid[newRow][newCol].isVisited
+    ) {
+      neighbors.push(grid[newRow][newCol]);
+    }
+  }
+
+  return neighbors;
 }
