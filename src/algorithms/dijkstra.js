@@ -1,6 +1,12 @@
 import TinyQueue from "tinyqueue";
 
-export default function dijkstra(startNode, finishNode, grid) {
+export default function dijkstra(
+  startNode,
+  finishNode,
+  grid,
+  diagonal,
+  isAstar
+) {
   // Set the start node distance to 0
   startNode.distance = 0;
 
@@ -27,12 +33,14 @@ export default function dijkstra(startNode, finishNode, grid) {
     cur.isVisited = true;
     visitedNodes.push(cur);
 
-    const adjacentNodes = getUnvisitedNeighbors(cur, grid);
+    const adjacentNodes = getUnvisitedNeighbors(cur, grid, diagonal);
 
     for (const node of adjacentNodes) {
+      // Modify the algorith to move in the direction of end node if A* is selected
+      const param = isAstar ? node.heuristic : cur.distance;
       // Relaxing the edges
-      if (node.distance > cur.distance + 1) {
-        node.distance = cur.distance + 1;
+      if (node.distance > param + 1) {
+        node.distance = param + 1;
         node.previousNode = cur;
 
         // Heapify
@@ -61,15 +69,17 @@ function getAllNodes(grid) {
 }
 
 // Gets all the adjacent nodes
-function getUnvisitedNeighbors(node, grid) {
+function getUnvisitedNeighbors(node, grid, diagonal) {
   let neighbors = [];
 
   const directions = [
     [1, 0],
-    [-1, 0],
     [0, 1],
+    [-1, 0],
     [0, -1],
   ];
+
+  if (diagonal) directions.push([1, 1], [-1, 1], [-1, -1], [1, -1]);
 
   const { row, col } = node;
 

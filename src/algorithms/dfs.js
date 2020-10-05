@@ -1,4 +1,4 @@
-export default function dfs(startNode, finishNode, grid) {
+export default function dfs(startNode, finishNode, grid, diagonal) {
   const visitedNodes = [];
   const stack = [];
   stack.push(startNode);
@@ -10,7 +10,7 @@ export default function dfs(startNode, finishNode, grid) {
       cur.isVisited = true;
       visitedNodes.push(cur);
 
-      const adjacentNodes = getUnvisitedNeighbors(cur, grid);
+      const adjacentNodes = getUnvisitedNeighbors(cur, grid, diagonal);
 
       for (const node of adjacentNodes) {
         node.previousNode = cur;
@@ -23,15 +23,17 @@ export default function dfs(startNode, finishNode, grid) {
 }
 
 // Gets all the adjacent nodes
-function getUnvisitedNeighbors(node, grid) {
+function getUnvisitedNeighbors(node, grid, diagonal) {
   let neighbors = [];
 
   const directions = [
     [1, 0],
-    [-1, 0],
     [0, 1],
+    [-1, 0],
     [0, -1],
   ];
+
+  if (diagonal) directions.push([1, 1], [-1, 1], [-1, -1], [1, -1]);
 
   const { row, col } = node;
 

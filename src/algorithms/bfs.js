@@ -1,4 +1,4 @@
-export default function bfs(startNode, finishNode, grid) {
+export default function bfs(startNode, finishNode, grid, diagonal) {
   const visitedNodes = [];
   const queue = [];
 
@@ -12,7 +12,7 @@ export default function bfs(startNode, finishNode, grid) {
       cur.isVisited = true;
       visitedNodes.push(cur);
 
-      const adjacentNodes = getUnvisitedNeighbors(cur, grid);
+      const adjacentNodes = getUnvisitedNeighbors(cur, grid, diagonal);
 
       for (const node of adjacentNodes) {
         node.previousNode = cur;
@@ -24,15 +24,17 @@ export default function bfs(startNode, finishNode, grid) {
   return visitedNodes;
 }
 
-function getUnvisitedNeighbors(node, grid) {
+function getUnvisitedNeighbors(node, grid, diagonal) {
   let neighbors = [];
 
   const directions = [
     [1, 0],
-    [-1, 0],
     [0, 1],
+    [-1, 0],
     [0, -1],
   ];
+
+  if (diagonal) directions.push([1, 1], [-1, 1], [-1, -1], [1, -1]);
 
   const { row, col } = node;
 

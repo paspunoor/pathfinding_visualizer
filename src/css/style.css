@@ -1,5 +1,18 @@
+@font-face {
+  font-family: "kalam";
+  src: url("../assets/Kalam-Regular.ttf") format("truetype");
+}
+
 .navbar-brand {
   color: #29e890 !important;
+}
+
+.info-text {
+  color: rgb(248, 249, 250);
+  font-size: 20px;
+  font-weight: 500;
+  margin-right: 10px;
+  margin-left: 100px;
 }
 
 .btn {
@@ -11,10 +24,124 @@
   font-weight: 500 !important;
 }
 
+.links {
+  display: flex;
+  margin-right: 70px;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  animation-name: shake;
+  animation-duration: 10s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+.links:hover {
+  animation-play-state: paused;
+}
+
+@keyframes shake {
+  2%,
+  18% {
+    transform: translate3d(-5px, 0, 0);
+  }
+
+  4%,
+  16% {
+    transform: translate3d(5px, 0, 0);
+  }
+
+  6%,
+  10%,
+  14% {
+    transform: translate3d(-5px, 0, 0);
+  }
+
+  8%,
+  12% {
+    transform: translate3d(5px, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(0px, 0, 0);
+  }
+}
+
+.icons {
+  width: 35px;
+  height: 35px;
+  margin-left: 15px;
+}
+
+.panel {
+  display: flex;
+  justify-content: space-between;
+  width: 1750px;
+  height: 140px;
+  margin: auto;
+  border: 1px solid black;
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 5px;
+  background-color: #c4d0f7;
+}
+
+.info {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-right: 20px;
+  font-family: "kalam";
+  font-size: 18px;
+  flex-grow: 100;
+  max-width: 1560px;
+}
+
+.tutorial {
+  background-color: white;
+  border: 1px solid black;
+  padding: 5px;
+  border-radius: 5px;
+  flex-grow: 1;
+  margin-bottom: 10px;
+}
+
+.algo-info {
+  border: 1px solid black;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: #002448;
+  color: #c0e796;
+}
+
+.metrics {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  border: 1px solid black;
+  border-radius: 5%;
+  padding: 8px;
+  background-color: #002448;
+  color: white;
+  width: 200px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.time {
+  color: #ec8418;
+}
+
+.visited {
+  color: #53f3ef;
+}
+
+.path {
+  color: #c5ef09;
+}
+
 .grid {
   border-collapse: collapse;
   margin: auto;
-  margin-top: 150px;
+  margin-top: 10px;
 }
 
 .node {

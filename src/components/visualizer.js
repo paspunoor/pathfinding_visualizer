@@ -1,13 +1,21 @@
 import React, { Component } from "react";
 import Node from "./node";
-import { Navbar, Nav, NavDropdown, Button } from "react-bootstrap";
+import {
+  Navbar,
+  Nav,
+  NavDropdown,
+  Button,
+  Spinner,
+  ToggleButton,
+  Image,
+} from "react-bootstrap";
 import dijkstra from "../algorithms/dijkstra";
-import astar from "../algorithms/astar";
 import dfs from "../algorithms/dfs";
 import bfs from "../algorithms/bfs";
 import pathImg from "../assets/path.svg";
-
-// Starting with a predefined start and end node
+import profileImg from "../assets/profile.svg";
+import codeImg from "../assets/code.svg";
+import githubImg from "../assets/github.svg";
 
 class Visualizer extends Component {
   constructor() {
@@ -24,6 +32,9 @@ class Visualizer extends Component {
       isClearingWalls: false,
       isMovingStart: false,
       isMovingEnd: false,
+      diagonal: false,
+      pathLength: "-",
+      visited: "-",
     };
 
     this.clearBoard = this.clearBoard.bind(this);
@@ -34,6 +45,7 @@ class Visualizer extends Component {
     this.handleSelect = this.handleSelect.bind(this);
     this.getInitialGrid = this.getInitialGrid.bind(this);
     this.createNode = this.createNode.bind(this);
+    this.handleChange = this.handleChange.bind(this);
   }
 
   componentDidMount() {
@@ -43,6 +55,12 @@ class Visualizer extends Component {
 
   toggleIsRunning() {
     this.setState({ isRunning: !this.state.isRunning });
+  }
+
+  handleChange() {
+    this.setState({
+      diagonal: !this.state.diagonal,
+    });
   }
 
   handleSelect(eventKey) {
@@ -139,7 +157,9 @@ class Visualizer extends Component {
       isWall: false,
       previousNode: null,
       mouseDown: false,
-      distanceToFinishNode: (endRow - row) ** 2 + (endCol - col) ** 2,
+      heuristic: this.state.diagonal
+        ? (endRow - row) ** 2 + (endCol - col) ** 2
+        : Math.abs(endRow - row) + Math.abs(endCol - col),
     };
 
     if (typeof startRow !== "undefined") {
@@ -162,29 +182,46 @@ class Visualizer extends Component {
     if (this.state.isRunning) return;
     this.clearGrid();
     this.toggleIsRunning();
-    const { algorithm, startRow, startCol, endRow, endCol, grid } = this.state;
+    const {
+      algorithm,
+      startRow,
+      startCol,
+      endRow,
+      endCol,
+      grid,
+      diagonal,
+    } = this.state;
     const startNode = grid[startRow][startCol],
       endNode = grid[endRow][endCol];
     let visitedNodes;
 
+    const startTime = window.performance.now();
     switch (algorithm) {
       case "1":
-        visitedNodes = dijkstra(startNode, endNode, grid);
+        visitedNodes = dijkstra(startNode, endNode, grid, diagonal);
         break;
       case "2":
-        visitedNodes = astar(startNode, endNode, grid);
+        // A* is a simple modification of dijkstra
+        const isAstar = true;
+        visitedNodes = dijkstra(startNode, endNode, grid, diagonal, isAstar);
         break;
       case "3":
-        visitedNodes = dfs(startNode, endNode, grid);
+        visitedNodes = dfs(startNode, endNode, grid, diagonal);
         break;
       case "4":
-        visitedNodes = bfs(startNode, endNode, grid);
+        visitedNodes = bfs(startNode, endNode, grid, diagonal);
         break;
       default:
     }
 
     const shortestPath = this.getShortestPath(endNode);
     shortestPath.push("end");
+
+    const endTime = window.performance.now();
+    this.setState({
+      visited: visitedNodes.length,
+      pathLength: shortestPath.length,
+    });
     this.animate(visitedNodes, shortestPath);
   }
 
@@ -248,6 +285,10 @@ class Visualizer extends Component {
 
   clearGrid() {
     if (!this.state.isRunning) {
+      this.setState({
+        pathLength: "-",
+        visited: "-",
+      });
       const { startRow, startCol, endRow, endCol } = this.state;
       const newGrid = this.state.grid.slice();
       for (const row of newGrid) {
@@ -264,23 +305,22 @@ class Visualizer extends Component {
               "node";
             node.isVisited = false;
             node.distance = Infinity;
-            node.distanceToFinishNode =
-              (this.state.endRow - node.row) ** 2 +
-              (this.state.endCol - node.col) ** 2;
+            node.heuristic = this.state.diagonal
+              ? (endRow - node.row) ** 2 + (endCol - node.col) ** 2
+              : Math.abs(endRow - node.row) + Math.abs(endCol - node.col);
           }
           if (nodeClassName === "node node-end") {
             node.isVisited = false;
             node.distance = Infinity;
-            node.distanceToFinishNode = 0;
+            node.heuristic = 0;
             node.previousNode = null;
-            node.distance = Infinity;
           }
           if (nodeClassName === "node node-start") {
             node.isVisited = false;
             node.distance = Infinity;
-            node.distanceToFinishNode =
-              (this.state.endRow - node.row) ** 2 +
-              (this.state.endCol - node.col) ** 2;
+            node.heuristic = this.state.diagonal
+              ? (endRow - node.row) ** 2 + (endCol - node.col) ** 2
+              : Math.abs(endRow - node.row) + Math.abs(endCol - node.col);
             node.isStart = true;
             node.isWall = false;
             node.previousNode = null;
@@ -300,6 +340,9 @@ class Visualizer extends Component {
       isMovingEnd,
       isRunning,
       algorithm,
+      diagonal,
+      pathLength,
+      visited,
     } = this.state;
 
     const algoKeys = {
@@ -310,6 +353,18 @@ class Visualizer extends Component {
     };
 
     const algo = algoKeys[algorithm];
+    const infoText = {
+      "1":
+        "The Dijkstra's algorithm is a greedy algorithm which guarantees the shortest path from one node to all other nodes in a weighted graph.",
+      "2":
+        "The A-star algorithm is a smarter version of Dijkstra's. It specializes in finding the shortest path from a start node to a finish node by moving in the direction of the finish node.",
+      "3":
+        "The Depth-first search algorithm is a graph traversal algorithm which prioritizes exploring the deeper nodes.",
+      "4":
+        "The Breadth-first search algorithm is a graph traversal algorithm which prioritizes exploring the neighboring nodes.",
+    };
+
+    const info = infoText[algorithm];
 
     return (
       <div
@@ -335,42 +390,87 @@ class Visualizer extends Component {
               height="30"
               className="d-inline-block align-top"
             />{" "}
-            Pathfinding algorithm visualizer
+            Pathfinding Algorithm Visualizer
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="mr-auto">
-              <NavDropdown
-                variant="Info"
-                title="Algorithm"
-                id="basic-nav-dropdown"
-                onSelect={(eventKey) => {
-                  this.handleSelect(eventKey);
-                }}
-              >
-                <NavDropdown.Item eventKey="1">Dijkstra's</NavDropdown.Item>
-                <NavDropdown.Item eventKey="2">A*</NavDropdown.Item>
-                <NavDropdown.Item eventKey="3">
-                  Depth-first search
-                </NavDropdown.Item>
-                <NavDropdown.Item eventKey="4">
-                  Breadth-first search
-                </NavDropdown.Item>
-              </NavDropdown>
+          {isRunning ? (
+            <>
+              <span className="info-text">Visualizing</span>
+              <Spinner animation="border" variant="light" />
+            </>
+          ) : (
+            <Navbar.Collapse id="basic-navbar-nav">
+              <Nav className="mr-auto">
+                <NavDropdown
+                  variant="Info"
+                  title="Algorithm"
+                  id="basic-nav-dropdown"
+                  onSelect={(eventKey) => {
+                    this.handleSelect(eventKey);
+                  }}
+                >
+                  <NavDropdown.Item eventKey="1">Dijkstra's</NavDropdown.Item>
+                  <NavDropdown.Item eventKey="2">A*</NavDropdown.Item>
+                  <NavDropdown.Item eventKey="3">
+                    Depth-first search
+                  </NavDropdown.Item>
+                  <NavDropdown.Item eventKey="4">
+                    Breadth-first search
+                  </NavDropdown.Item>
+                </NavDropdown>
 
-              <Button variant="info" onClick={this.runPathfinder}>
-                Run -> {algo}
-              </Button>
-              <Button onClick={this.clearBoard} variant="outline-danger">
-                Clear walls and board
-              </Button>
+                <Button variant="info" onClick={this.runPathfinder}>
+                  Run -> {algo}
+                </Button>
+                <Button onClick={this.clearBoard} variant="outline-danger">
+                  Clear walls and board
+                </Button>
 
-              <Button onClick={this.clearGrid} variant="outline-warning">
-                Clear board
-              </Button>
-            </Nav>
-          </Navbar.Collapse>
+                <Button onClick={this.clearGrid} variant="outline-warning">
+                  Clear board
+                </Button>
+                <Button
+                  variant={diagonal ? "secondary" : "light"}
+                  onClick={this.handleChange}
+                >
+                  {diagonal
+                    ? "Lateral traversal only"
+                    : "Allow diagonal traversal"}
+                </Button>
+              </Nav>
+              <div className="links">
+                <a href="https://github.com/paspunoor/pathfinding_visualizer">
+                  <Image alt="code" className="icons" src={codeImg} />
+                </a>
+                <a href="https://github.com/paspunoor">
+                  <Image alt="github" className="icons" src={githubImg} />
+                </a>
+                <a>
+                  <Image alt="profile" className="icons" src={profileImg} />
+                </a>
+              </div>
+            </Navbar.Collapse>
+          )}
         </Navbar>
+        <div className="panel">
+          <div className="info">
+            <div className="tutorial">
+              Welcome to the Pathfinding Algorithm Visualizer! Drag and drop the
+              Spaceship and the Planet anywhere on the grid. You can add
+              asteroids by clicking and dragging on an empty cell. Choose an
+              algorithm from the dropdown list above and click on <b>Run</b> to
+              watch the Spaceship find it's way to the Planet. Tip: Click on
+              Clear walls and board if you lose your Spaceship or Planet.
+            </div>
+            <div className="algo-info">{info}</div>
+          </div>
+          <div className="metrics">
+            <span className="stat visited">{"NODES VISITED : " + visited}</span>
+            <span className="stat path">
+              {"PATH LENGTH : " + (pathLength - 2 || pathLength)}
+            </span>
+          </div>
+        </div>
         <table className="grid">
           <tbody>
             {grid.map((row, rowIdx) => {
