@@ -445,9 +445,9 @@ class Visualizer extends Component {
                 <a href="https://github.com/paspunoor">
                   <Image alt="github" className="icons" src={githubImg} />
                 </a>
-                <a>
+                {/* <a>
                   <Image alt="profile" className="icons" src={profileImg} />
-                </a>
+                </a> */}
               </div>
             </Navbar.Collapse>
           )}

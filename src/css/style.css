@@ -27,42 +27,6 @@
 .links {
   display: flex;
   margin-right: 70px;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  animation-name: shake;
-  animation-duration: 10s;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-}
-.links:hover {
-  animation-play-state: paused;
-}
-
-@keyframes shake {
-  2%,
-  18% {
-    transform: translate3d(-5px, 0, 0);
-  }
-
-  4%,
-  16% {
-    transform: translate3d(5px, 0, 0);
-  }
-
-  6%,
-  10%,
-  14% {
-    transform: translate3d(-5px, 0, 0);
-  }
-
-  8%,
-  12% {
-    transform: translate3d(5px, 0, 0);
-  }
-
-  100% {
-    transform: translate3d(0px, 0, 0);
-  }
 }
 
 .icons {
